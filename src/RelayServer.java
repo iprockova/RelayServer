@@ -28,7 +28,7 @@ class RelayServer extends Thread
 				  String request = readFromSocket(socket);
 				  
 				  //start client and get response
-				  String reply = new RelayClient().execute(request);
+				  byte[] reply = new RelayClient().execute(request);
 				  
 				  //write the response to the socket
 				  writeToSocket(socket, reply);
@@ -50,10 +50,10 @@ class RelayServer extends Thread
 		}
 	}
 
-	private void writeToSocket(Socket socket, String response) {
+	private void writeToSocket(Socket socket, byte[] response) {
 		try{
 			OutputStream out = socket.getOutputStream();
-	    	out.write(response.getBytes());
+	    	out.write(response);
 	        out.flush();
 		}catch (Exception e) {
 			e.printStackTrace();

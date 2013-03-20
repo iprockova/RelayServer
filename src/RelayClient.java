@@ -9,17 +9,13 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-
-
 
 public class RelayClient {
 	 
 	 DataOutputStream dataOutputStream = null;
 	 DataInputStream dataInputStream = null;
 	 
-	public String execute(String input) {
+	public byte[] execute(String input) {
 		String testServerName = "media.admob.com";
 	    int port = 80;
 	    Socket socket=null;
@@ -29,7 +25,7 @@ public class RelayClient {
 	       socket = openSocket(testServerName, port);
 	      
 	      // write-to and read-from the socket.
-	      String response =  writeToAndReadFromSocket(socket, input);
+	      byte[] response =  writeToAndReadFromSocket(socket, input);
 	       
 	      // close the socket, and we're done
 	      socket.close();
@@ -49,7 +45,7 @@ public class RelayClient {
 		}
 	}
 	  
-	  private String writeToAndReadFromSocket(Socket socket, String input) throws Exception
+	  private byte[] writeToAndReadFromSocket(Socket socket, String input) throws Exception
 	  {
 	    try 
 	    {
@@ -59,21 +55,13 @@ public class RelayClient {
 	        out.flush();
 	    	
 	    	//read from socket
-	    	String inputLine;
-	    	StringBuffer response = new StringBuffer();
-	        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		    while ((inputLine = in.readLine()) != null) {
-			  System.out.println(inputLine);
-			  response.append(inputLine + "\r\n");
-			  if(inputLine.equals("0"))
-				   break;
-		    }
-		    response.append("\r\n");
+	        InputStream in = socket.getInputStream();
+	        byte [] response = RelayClientRead.readResponse(in);
 		    System.out.println("RelayClient: done reading");
 		    
 		    out.close();
 		    in.close();
-	    	return response.toString();
+	    	return response;
 	    }catch (Exception e) {
 		   e.printStackTrace();
 		   return null;
