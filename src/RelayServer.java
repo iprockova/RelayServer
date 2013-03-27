@@ -6,82 +6,75 @@ class RelayServer extends Thread
 {
 	private ServerSocket serverSocket = null;
 	
-	private BufferedReader in = null;
-	
-	private boolean threadDone = true;
-	
 	public void run(){
-		while(threadDone){
 			startServerSocket();
-		}
 	}
 	
 	public void startServerSocket(){
-		Socket socket = null;
 		try {
 			   serverSocket = new ServerSocket(8080);
-			   System.out.println("myApp, Listening :8080");
-	
-				  socket = serverSocket.accept();
-				  
-				  // read the request from the socket
-				  String request = readFromSocket(socket);
-				  
-				  //start client and get response
-				  byte[] reply = new RelayClient().execute(request);
-				  
-				  //write the response to the socket
-				  writeToSocket(socket, reply);
-				  System.out.println("RelayServer: reply sent to mobile app");
+			   System.out.println("Listening :8080");
+				  while(true){
+					  ClientWorker w;
+					    try{
+					      w = new ClientWorker(serverSocket.accept());
+					      Thread t = new Thread(w);
+					      t.start();
+					    } catch (IOException e) {
+					      System.out.println("Accept failed: 8080");
+					      System.exit(-1);
+					    }
+				  }
 				  
 		}catch (IOException e) {
 			e.printStackTrace();
+			System.exit(-1);
 		}
 		catch(Exception e){
 			e.printStackTrace();
+			System.exit(-1);
 		}
 		finally{
-			try {
-				if(socket!= null) socket.close();
-				if(threadDone = true) threadDone = false;
-			}catch (IOException e) {
-			      e.printStackTrace();
+		}
+	}
+	public class ClientWorker implements Runnable{
+		private Socket client;
+
+		  ClientWorker(Socket client) {
+		    this.client = client;
+		  }
+		  
+		@Override
+		public void run() {
+			String inputLine;
+		    BufferedReader in = null;
+		    OutputStream out = null;
+		    try{
+			    in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+			    out = client.getOutputStream();
+		   
+			    byte [] outputLine;
+			    StringBuffer request = new StringBuffer();
+		    
+			    while(true){
+			        inputLine = in.readLine();
+			        if(inputLine != null){
+				        System.out.println(inputLine);
+					    if(!(inputLine.equals("")))
+					    	request.append(inputLine + "\r\n");
+					    else {
+					    	request.append("\r\n");
+					    	outputLine = new RelayClient().execute(request.toString());
+						    out.write(outputLine);
+						    out.flush();
+						    request  = new StringBuffer();
+					    }
+			         }
 			     }
-		}
+			    }catch (IOException e) {
+			       System.out.println("Read failed");
+			       System.exit(-1);
+			   }
+		} 
 	}
-
-	private void writeToSocket(Socket socket, byte[] response) {
-		try{
-			OutputStream out = socket.getOutputStream();
-	    	out.write(response);
-	        out.flush();
-		}catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	}
-
-	private String readFromSocket(Socket socket) {
-		  try{
-			  
-			  String inputLine = "";
-			  InputStream input = socket.getInputStream();
-			  in = new BufferedReader(new InputStreamReader(input));
-			  
-			  StringBuffer request = new StringBuffer();
-			  //print the input
-			  while (!(inputLine = in.readLine()).equals("")) {
-			      System.out.println(inputLine);
-			      request.append(inputLine + "\r\n");
-			  }
-			  request.append("\r\n");
-			  
-			  return request.toString();
-		  }catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		
-	}
-	
 }

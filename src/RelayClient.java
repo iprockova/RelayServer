@@ -1,9 +1,5 @@
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -12,11 +8,13 @@ import java.net.SocketTimeoutException;
 
 public class RelayClient {
 	 
-	 DataOutputStream dataOutputStream = null;
-	 DataInputStream dataInputStream = null;
+	 
+	 public RelayClient() {
+		// TODO Auto-generated constructor stub
+	}
 	 
 	public byte[] execute(String input) {
-		String testServerName = "media.admob.com";
+		String testServerName = getHost(input);
 	    int port = 80;
 	    Socket socket=null;
 	    try
@@ -45,7 +43,22 @@ public class RelayClient {
 		}
 	}
 	  
-	  private byte[] writeToAndReadFromSocket(Socket socket, String input) throws Exception
+	  private String getHost(String input) {
+		  int startIndex = 0;
+		  int endIndex = 0;
+		  String hostString = "Host";
+		  String hostValue = "";
+		  String connectivChars=": ";
+		  if(input.contains(hostString)) {
+				startIndex = input.lastIndexOf(hostString);
+				startIndex += hostString.length() + connectivChars.length();
+				endIndex = input.indexOf("\r", startIndex);
+				hostValue = input.substring(startIndex, endIndex);
+			}
+		  return hostValue;
+	}
+
+	private byte[] writeToAndReadFromSocket(Socket socket, String input) throws Exception
 	  {
 	    try 
 	    {
@@ -56,8 +69,7 @@ public class RelayClient {
 	    	
 	    	//read from socket
 	        InputStream in = socket.getInputStream();
-	        byte [] response = RelayClientRead.readResponse(in);
-		    System.out.println("RelayClient: done reading");
+	        byte [] response = ByteReader.readResponse(in);
 		    
 		    out.close();
 		    in.close();
