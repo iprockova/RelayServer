@@ -7,12 +7,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.*;
+
+import org.apache.commons.lang3.ArrayUtils;
+
 public class ByteReader {
 
 	public static byte[] readResponse(InputStream in){
 		int index = 0;
         int byteRead = 0;
         List<Byte> array = new ArrayList<Byte>();
+        List<Byte> header = new ArrayList<Byte>();
         
         try {
 	        while(true){
@@ -26,8 +31,9 @@ public class ByteReader {
 	            			//read message body
 	            			readMessageBody(in, array);
 	            			break;
-	            	}else{ //read header bytes
+	            	}else{ //add header bytes
 			        	array.add((byte)byteRead);
+			        	header.add((byte)byteRead);
 			        	index ++;
 	            	}
 	        	}
@@ -36,13 +42,30 @@ public class ByteReader {
         }catch (IOException e) {System.err.println(e);} 
         catch (Exception e) {System.err.println(e);} 
         
-     // String arrayString = listToString(array);
-     // System.out.println(arrayString);
-     //   printByteArray(array);
+//      String arrayString = listToString(array);
+//      System.out.println(arrayString);
+//      printByteArray(array);
         System.out.println("Done: " + array.size());
         
         byte [] response = listToByteArray(array);
+        saveHeaderToFile(header);
+        
         return response;
+	}
+	private static void saveHeaderToFile(List<Byte> response_header) {
+		byte [] response_header_bytes = ArrayUtils.toPrimitive(response_header.toArray(new Byte[response_header.size()]));
+		String response_header_string = new String(response_header_bytes);
+		
+		if(response_header_string.contains("X-Afma-Debug-Dialog")){
+			try {
+				FileWriter fw = new FileWriter("response_header.txt",true); 
+			    fw.write(response_header_string);
+			    fw.close();			   
+			} catch (IOException e) {
+			    e.printStackTrace();
+			}
+		}
+		
 	}
 	private static void readMessageBody(InputStream in, List<Byte> array){
 		int bodyLength = getContentLenght(array);

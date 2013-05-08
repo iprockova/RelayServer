@@ -21,6 +21,8 @@ public class RelayClient {
 	    {
 	      // open a socket
 	       socket = openSocket(testServerName, port);
+	       
+	       //save to file for later analysis 
 	      
 	      // write-to and read-from the socket.
 	      byte[] response =  writeToAndReadFromSocket(socket, input);
@@ -43,7 +45,8 @@ public class RelayClient {
 		}
 	}
 	  
-	  private String getHost(String input) {
+
+	private String getHost(String input) {
 		  int startIndex = 0;
 		  int endIndex = 0;
 		  String hostString = "Host";

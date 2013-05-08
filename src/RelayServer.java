@@ -67,7 +67,13 @@ class RelayServer extends Thread
 					    	outputLine = new RelayClient().execute(request.toString());
 						    out.write(outputLine);
 						    out.flush();
+						    
+						    if((request.toString().contains("GET /mads/gma?preqs=") && request.toString().contains("Host: googleads.g.doubleclick.net"))) //if it is ad request
+						    	saveRequestToFile(request.toString()); //for analysis 
+						    	
 						    request  = new StringBuffer();
+						    
+						    
 					    }
 			         }
 			     }
@@ -75,6 +81,20 @@ class RelayServer extends Thread
 			       System.out.println("Read failed");
 			       System.exit(-1);
 			   }
+		}
+
+		private void saveRequestToFile(String request) {
+			FileWriter fw;
+			try {
+				fw = new FileWriter("request_header.txt",true);
+				fw.write(request);
+				fw.close();	
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} //the true will append the new data
+		   
+			
 		} 
 	}
 }
